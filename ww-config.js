@@ -22,6 +22,11 @@ export default {
       label: { en: "Border radius" },
       type: "Number",
       defaultValue: 6
+    },
+    value: {
+      label: { en: "Selected Time" },
+      type: "Text",
+      defaultValue: ""
     }
   }
 };
