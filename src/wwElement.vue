@@ -24,7 +24,7 @@ export default {
       return {
         color: this.content.textColor,
         padding: "8px",
-        border: "1px solid #ccc",
+        border: `1px solid ${this.content.borderColor}`,
         borderRadius: "6px",
       };
     },
