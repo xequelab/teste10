@@ -1,0 +1,21 @@
+{
+  "name": "ww-webapp-textinput",
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/seu-repo/ww-webapp-textinput"
+  },
+  "scripts": {
+    "build": "weweb build",
+    "serve": "weweb serve"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vue/eslint-config-prettier": "^6.0.0",
+    "@weweb/cli": "latest",
+    "eslint": "^7.7.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-vue": "7.0.0-beta.4",
+    "prettier": "^2.1.2"
+  }
+}
