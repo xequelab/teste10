@@ -1,6 +1,6 @@
 export default {
   editor: {
-    label: { en: "Time Picker" },
+    label: { en: "Time Picker" }
   },
   properties: {
     textColor: {
