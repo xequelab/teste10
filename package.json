@@ -1,21 +1,37 @@
 {
-  "name": "ww-webapp-timepicker",
-  "version": "1.3.0",
-  "license": "MIT",
-  "repository": {
-    "url": "https://github.com/seu-repo/ww-webapp-timepicker"
-  },
+  "name": "ww-time-picker",
+  "version": "1.0.0",
+  "description": "Modern and elegant time picker component for WeWeb",
+  "main": "ww-config.js",
   "scripts": {
     "build": "weweb build",
-    "serve": "weweb serve"
+    "dev": "weweb dev",
+    "publish": "weweb publish"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "@vue/eslint-config-prettier": "^6.0.0",
-    "@weweb/cli": "latest",
-    "eslint": "^7.7.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "eslint-plugin-vue": "7.0.0-beta.4",
-    "prettier": "^2.1.2"
-  }
+  "keywords": [
+    "weweb",
+    "component",
+    "time-picker",
+    "vue3",
+    "ui"
+  ],
+  "author": "WeWeb Component",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.0.0"
+  },
+  "wewebComponent": {
+    "componentType": "element",
+    "name": "ww-time-picker",
+    "icon": "time",
+    "category": "form"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/weweb-assets/ww-time-picker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/weweb-assets/ww-time-picker/issues"
+  },
+  "homepage": "https://github.com/weweb-assets/ww-time-picker#readme"
 }
