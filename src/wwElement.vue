@@ -2,15 +2,14 @@
   <div class="timepicker-container" :style="containerStyle">
     <input
       type="time"
-      :value="time.value"
+      v-model="time.value"
       :style="inputStyle"
-      @input="onInput($event)"
     />
   </div>
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from "vue";
+import { computed } from "vue";
 
 export default {
   props: {
@@ -23,6 +22,7 @@ export default {
     /* wwEditor:end */
   },
   setup(props, { emit }) {
+    // Detecta se estamos no editor
     const isEditing = computed(() => {
       /* wwEditor:start */
       return props.wwEditorState.editMode === wwLib.wwEditorHelper.EDIT_MODES.EDITION;
@@ -30,15 +30,14 @@ export default {
       return false;
     });
 
-    // Cria variável do componente para o valor do time picker
-    const { value: time, setValue: setTime } = wwLib.wwVariable.useComponentVariable({
+    // Variável do componente que vai para workflow
+    const { value: time } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
       name: "value",
       type: "string",
       defaultValue: props.content.value || ""
     });
 
-    // Estilo do input
     const inputStyle = computed(() => ({
       color: props.content.textColor,
       backgroundColor: props.content.backgroundColor,
@@ -56,30 +55,7 @@ export default {
       display: "inline-block"
     }));
 
-    // Atualiza a variável do componente quando o usuário muda o valor
-    function onInput(event) {
-      setTime(event.target.value);
-      emit("trigger-event", { name: "change", event: { value: event.target.value } });
-    }
-
-    // Sincroniza valor inicial do content
-    watch(() => props.content.value, (newVal) => {
-      if (newVal !== time.value) {
-        setTime(newVal);
-      }
-    });
-
-    // Opcional: foco automático quando não estiver editando
-    onMounted(() => {
-      if (props.content.autoFocus && !isEditing.value) {
-        nextTick(() => {
-          const input = document.querySelector(`.timepicker-container input`);
-          if (input) input.focus();
-        });
-      }
-    });
-
-    return { time, inputStyle, containerStyle, onInput };
+    return { time, inputStyle, containerStyle };
   }
 };
 </script>
