@@ -2,7 +2,7 @@
   <div class="timepicker-container" :style="containerStyle">
     <input
       type="time"
-      v-model="time.value"
+      :value="time.value"
       :style="inputStyle"
       @input="onInput"
     />
@@ -30,7 +30,7 @@ export default {
       return false;
     });
 
-    // Variável do componente para workflow
+    // Variável do componente
     const { value: time, setValue: setTime } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
       name: "value",
@@ -42,14 +42,6 @@ export default {
     onMounted(() => {
       if (props.content.value && !time.value) {
         setTime(props.content.value);
-      }
-
-      // Foco automático
-      if (props.content.autoFocus && !isEditing.value) {
-        nextTick(() => {
-          const input = document.querySelector(`.timepicker-container input`);
-          if (input) input.focus();
-        });
       }
     });
 
@@ -70,13 +62,15 @@ export default {
       display: "inline-block"
     }));
 
-    // Trigger de evento change
+    // Atualiza tanto a variável quanto o content.value
     function onInput(event) {
-      emit("trigger-event", { name: "change", event: { value: time.value } });
+      const val = event.target.value;
+      setTime(val);            // Workflow
+      props.content.value = val; // Persistência no editor
+      emit("trigger-event", { name: "change", event: { value: val } });
 
-      // Dispara evento complete se o valor não estiver vazio
-      if (time.value) {
-        emit("trigger-event", { name: "complete", event: { value: time.value } });
+      if (val) {
+        emit("trigger-event", { name: "complete", event: { value: val } });
       }
     }
 
