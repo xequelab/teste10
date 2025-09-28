@@ -148,7 +148,7 @@ export default {
         fontSize: this.content.labelSize || '14px',
         fontWeight: this.content.labelWeight || '500',
         marginBottom: '8px',
-        display: 'flex'
+        display: 'block'
       }
     },
     
@@ -379,6 +379,11 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.ww-time-picker {
+  display: flex;
+  flex-direction: column;
 }
 
 .time-section {
