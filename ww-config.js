@@ -220,6 +220,76 @@ export default {
     },
     
     // Layout
+    display: {
+      label: {
+        en: "Display",
+        pt: "Display"
+      },
+      type: "TextSelect",
+      options: {
+        options: [
+          { value: "block", label: "Block" },
+          { value: "flex", label: "Flex" },
+          { value: "inline-block", label: "Inline Block" },
+          { value: "inline", label: "Inline" }
+        ]
+      },
+      defaultValue: "flex"
+    },
+    
+    flexDirection: {
+      label: {
+        en: "Flex Direction",
+        pt: "Direção do Flex"
+      },
+      type: "TextSelect",
+      options: {
+        options: [
+          { value: "column", label: "Column" },
+          { value: "row", label: "Row" }
+        ]
+      },
+      defaultValue: "column",
+      hidden: content => content.display !== "flex"
+    },
+    
+    alignItems: {
+      label: {
+        en: "Align Items",
+        pt: "Alinhar Itens"
+      },
+      type: "TextSelect",
+      options: {
+        options: [
+          { value: "flex-start", label: "Start" },
+          { value: "center", label: "Center" },
+          { value: "flex-end", label: "End" },
+          { value: "stretch", label: "Stretch" }
+        ]
+      },
+      defaultValue: "center",
+      hidden: content => content.display !== "flex"
+    },
+    
+    justifyContent: {
+      label: {
+        en: "Justify Content",
+        pt: "Justificar Conteúdo"
+      },
+      type: "TextSelect",
+      options: {
+        options: [
+          { value: "flex-start", label: "Start" },
+          { value: "center", label: "Center" },
+          { value: "flex-end", label: "End" },
+          { value: "space-between", label: "Space Between" },
+          { value: "space-around", label: "Space Around" }
+        ]
+      },
+      defaultValue: "center",
+      hidden: content => content.display !== "flex"
+    },
+    
     width: {
       label: {
         en: "Width",
