@@ -148,7 +148,7 @@ export default {
         fontSize: this.content.labelSize || '14px',
         fontWeight: this.content.labelWeight || '500',
         marginBottom: '8px',
-        display: 'block'
+        display: 'flex'
       }
     },
     
