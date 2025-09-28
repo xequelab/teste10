@@ -19,7 +19,7 @@ export default {
       },
       type: "Text",
       bindable: true,
-      defaultValue: "12:00"
+      defaultValue: "09:00"
     },
     
     // Format settings
