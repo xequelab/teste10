@@ -138,7 +138,11 @@ export default {
         fontFamily: this.content.fontFamily || 'system-ui, -apple-system, sans-serif',
         width: this.content.width || '100%',
         maxWidth: this.content.maxWidth || '400px',
-        margin: this.content.centerAlign ? '0 auto' : '0'
+        margin: this.content.centerAlign ? '0 auto' : '0',
+        display: this.content.display || 'flex',
+        flexDirection: this.content.flexDirection || 'column',
+        alignItems: this.content.alignItems || 'center',
+        justifyContent: this.content.justifyContent || 'center'
       }
     },
     
