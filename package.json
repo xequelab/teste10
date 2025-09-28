@@ -1,9 +1,9 @@
 {
-  "name": "ww-webapp-textinput",
-  "version": "1.0.1",
+  "name": "ww-webapp-timepicker",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/seu-repo/ww-webapp-textinput"
+    "url": "https://github.com/seu-repo/ww-webapp-timepicker"
   },
   "scripts": {
     "build": "weweb build",
