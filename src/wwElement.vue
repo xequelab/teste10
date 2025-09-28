@@ -4,6 +4,7 @@
       type="time"
       v-model="time"
       :style="inputStyle"
+      @input="updateValue"
     />
   </div>
 </template>
@@ -11,11 +12,11 @@
 <script>
 export default {
   props: {
-    content: { type: Object, required: true },
+    content: { type: Object, required: true }
   },
   data() {
     return {
-      time: ""
+      time: this.content.value || ""
     };
   },
   computed: {
@@ -28,7 +29,9 @@ export default {
         padding: "8px 12px",
         fontSize: "16px",
         outline: "none",
-        cursor: "pointer"
+        cursor: "pointer",
+        width: "150px",
+        boxSizing: "border-box"
       };
     },
     containerStyle() {
@@ -36,20 +39,26 @@ export default {
         display: "inline-block"
       };
     }
+  },
+  methods: {
+    updateValue() {
+      // Atualiza o content.value para o WeWeb capturar
+      this.$emit('update:content', { ...this.content, value: this.time });
+    }
   }
 };
 </script>
 
 <style scoped>
-/* Somente um toque de modernidade */
+/* Removendo botões padrão do input time */
 .timepicker-container input::-webkit-inner-spin-button,
 .timepicker-container input::-webkit-clear-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
+/* Foco moderno */
 .timepicker-container input:focus {
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
 }
 </style>
-
