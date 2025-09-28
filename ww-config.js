@@ -1,30 +1,27 @@
 export default {
   editor: {
-    label: {
-      en: "Text Input",
-    },
+    label: { en: "Time Picker" },
   },
   properties: {
-    placeholder: {
-      label: {
-        en: "Placeholder",
-      },
-      type: "Text",
-      defaultValue: "Type something...",
-    },
     textColor: {
-      label: {
-        en: "Text color",
-      },
+      label: { en: "Text color" },
       type: "Color",
-      defaultValue: "#000000",
+      defaultValue: "#000000"
+    },
+    backgroundColor: {
+      label: { en: "Background color" },
+      type: "Color",
+      defaultValue: "#ffffff"
     },
     borderColor: {
-      label: {
-        en: "Border color",
-      },
+      label: { en: "Border color" },
       type: "Color",
-      defaultValue: "#cccccc",
+      defaultValue: "#cccccc"
     },
-  },
+    borderRadius: {
+      label: { en: "Border radius" },
+      type: "Number",
+      defaultValue: 6
+    }
+  }
 };
