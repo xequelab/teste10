@@ -19,5 +19,12 @@ export default {
       type: "Color",
       defaultValue: "#000000",
     },
+    borderColor: {
+      label: {
+        en: "Border color",
+      },
+      type: "Color",
+      defaultValue: "#cccccc",
+    },
   },
 };
