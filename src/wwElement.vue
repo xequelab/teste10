@@ -98,14 +98,34 @@
 </template>
 
 <script>
+import { computed, ref } from "vue";
+
 export default {
+  emits: ["update:content", "trigger-event"],
   props: {
     content: { type: Object, required: true },
+    uid: { type: String, required: true },
+  },
+  
+  setup(props) {
+    const initValue = computed(() => props.content.value || "09:00");
+    
+    const { value: variableValue, setValue } = wwLib.wwVariable.useComponentVariable({
+      uid: props.uid,
+      name: "value",
+      defaultValue: initValue,
+    });
+
+    return {
+      variableValue,
+      setValue,
+      initValue
+    };
   },
   
   data() {
     return {
-      hours: 12,
+      hours: 9,
       minutes: 0,
       seconds: 0,
       ampm: 'AM'
@@ -139,10 +159,7 @@ export default {
         borderRadius: this.content.borderRadius || '12px',
         padding: this.content.padding || '16px',
         boxShadow: this.content.boxShadow || '0 1px 3px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.2s ease',
-        ':hover': {
-          borderColor: this.content.borderHoverColor || '#3b82f6'
-        }
+        transition: 'all 0.2s ease'
       }
     },
     
@@ -233,10 +250,20 @@ export default {
   },
   
   watch: {
-    'content.value': {
+    initValue: {
+      handler(newValue) {
+        if (newValue && newValue !== this.variableValue) {
+          this.parseTime(newValue);
+          this.setValue(newValue);
+        }
+      },
+      immediate: true
+    },
+    
+    variableValue: {
       handler(newValue) {
         if (newValue && newValue !== this.timeValue) {
-          this.parseTime(newValue)
+          this.parseTime(newValue);
         }
       },
       immediate: true
@@ -280,9 +307,12 @@ export default {
     },
     
     updateTime() {
-      this.$emit('update:content', { 
-        value: this.timeValue 
-      })
+      const newValue = this.timeValue;
+      this.setValue(newValue);
+      this.$emit('trigger-event', {
+        name: 'change',
+        event: { value: newValue }
+      });
     },
     
     validateHours() {
@@ -319,8 +349,9 @@ export default {
   },
   
   mounted() {
-    if (this.content.value) {
-      this.parseTime(this.content.value)
+    // Inicializa com valor padrão
+    if (!this.variableValue) {
+      this.setValue(this.timeValue);
     }
   }
 }
