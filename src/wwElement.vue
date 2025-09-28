@@ -4,12 +4,13 @@
       type="time"
       v-model="time.value"
       :style="inputStyle"
+      @input="onInput"
     />
   </div>
 </template>
 
 <script>
-import { computed } from "vue";
+import { computed, onMounted, nextTick } from "vue";
 
 export default {
   props: {
@@ -22,7 +23,6 @@ export default {
     /* wwEditor:end */
   },
   setup(props, { emit }) {
-    // Detecta se estamos no editor
     const isEditing = computed(() => {
       /* wwEditor:start */
       return props.wwEditorState.editMode === wwLib.wwEditorHelper.EDIT_MODES.EDITION;
@@ -30,12 +30,27 @@ export default {
       return false;
     });
 
-    // Variável do componente que vai para workflow
-    const { value: time } = wwLib.wwVariable.useComponentVariable({
+    // Variável do componente para workflow
+    const { value: time, setValue: setTime } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
       name: "value",
       type: "string",
-      defaultValue: props.content.value || ""
+      defaultValue: ""
+    });
+
+    // Inicializa valor do content se variável estiver vazia
+    onMounted(() => {
+      if (props.content.value && !time.value) {
+        setTime(props.content.value);
+      }
+
+      // Foco automático
+      if (props.content.autoFocus && !isEditing.value) {
+        nextTick(() => {
+          const input = document.querySelector(`.timepicker-container input`);
+          if (input) input.focus();
+        });
+      }
     });
 
     const inputStyle = computed(() => ({
@@ -55,7 +70,17 @@ export default {
       display: "inline-block"
     }));
 
-    return { time, inputStyle, containerStyle };
+    // Trigger de evento change
+    function onInput(event) {
+      emit("trigger-event", { name: "change", event: { value: time.value } });
+
+      // Dispara evento complete se o valor não estiver vazio
+      if (time.value) {
+        emit("trigger-event", { name: "complete", event: { value: time.value } });
+      }
+    }
+
+    return { time, inputStyle, containerStyle, onInput };
   }
 };
 </script>
