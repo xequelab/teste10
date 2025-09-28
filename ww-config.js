@@ -1,550 +1,447 @@
+<template>
+  <div class="ww-time-picker" :style="containerStyle">
+    <label v-if="content.showLabel && content.label" class="time-picker-label" :style="labelStyle">
+      {{ wwLib.wwLang.getText(content.label) }}
+    </label>
+    
+    <div class="time-input-container" :style="inputContainerStyle">
+      <div class="time-input-wrapper">
+        <!-- Hours -->
+        <div class="time-section">
+          <input 
+            type="number" 
+            v-model="hours" 
+            @input="updateTime"
+            @blur="validateHours"
+            min="0" 
+            :max="content.format24h ? 23 : 12"
+            class="time-input hours-input"
+            :style="inputStyle"
+            :disabled="content.disabled"
+            :readonly="content.readonly"
+          />
+          <span class="time-label" :style="timeLabelStyle">{{ content.hoursLabel || 'H' }}</span>
+        </div>
+        
+        <span class="time-separator" :style="separatorStyle">:</span>
+        
+        <!-- Minutes -->
+        <div class="time-section">
+          <input 
+            type="number" 
+            v-model="minutes" 
+            @input="updateTime"
+            @blur="validateMinutes"
+            min="0" 
+            max="59"
+            class="time-input minutes-input"
+            :style="inputStyle"
+            :disabled="content.disabled"
+            :readonly="content.readonly"
+          />
+          <span class="time-label" :style="timeLabelStyle">{{ content.minutesLabel || 'M' }}</span>
+        </div>
+        
+        <!-- Seconds (if enabled) -->
+        <template v-if="content.showSeconds">
+          <span class="time-separator" :style="separatorStyle">:</span>
+          <div class="time-section">
+            <input 
+              type="number" 
+              v-model="seconds" 
+              @input="updateTime"
+              @blur="validateSeconds"
+              min="0" 
+              max="59"
+              class="time-input seconds-input"
+              :style="inputStyle"
+              :disabled="content.disabled"
+              :readonly="content.readonly"
+            />
+            <span class="time-label" :style="timeLabelStyle">{{ content.secondsLabel || 'S' }}</span>
+          </div>
+        </template>
+        
+        <!-- AM/PM Toggle (12h format) -->
+        <div v-if="!content.format24h" class="ampm-toggle" :style="ampmStyle">
+          <button 
+            @click="toggleAmPm"
+            :disabled="content.disabled || content.readonly"
+            class="ampm-button"
+            :style="ampmButtonStyle"
+          >
+            {{ ampm }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Preset buttons -->
+      <div v-if="content.showPresets && content.presets?.length" class="presets-container">
+        <button 
+          v-for="preset in content.presets"
+          :key="preset.label"
+          @click="setPreset(preset.value)"
+          class="preset-button"
+          :style="presetButtonStyle"
+          :disabled="content.disabled || content.readonly"
+        >
+          {{ preset.label }}
+        </button>
+      </div>
+    </div>
+    
+    <!-- Helper text -->
+    <div v-if="content.helperText" class="helper-text" :style="helperTextStyle">
+      {{ wwLib.wwLang.getText(content.helperText) }}
+    </div>
+  </div>
+</template>
+
+<script>
+import { computed, ref } from "vue";
+
 export default {
-  editor: {
-    label: {
-      en: "Time Picker",
-      pt: "Seletor de Hora"
-    },
-    icon: "time",
-    bubble: {
-      icon: "time"
+  emits: ["update:content", "trigger-event"],
+  props: {
+    content: { type: Object, required: true },
+    uid: { type: String, required: true },
+  },
+  
+  setup(props) {
+    const initValue = computed(() => props.content.value || "09:00");
+    
+    const { value: variableValue, setValue } = wwLib.wwVariable.useComponentVariable({
+      uid: props.uid,
+      name: "value",
+      defaultValue: initValue,
+    });
+
+    return {
+      variableValue,
+      setValue,
+      initValue
+    };
+  },
+  
+  data() {
+    return {
+      hours: 9,
+      minutes: 0,
+      seconds: 0,
+      ampm: 'AM'
     }
   },
   
-  properties: {
-    // Main value
-    value: {
-      label: {
-        en: "Time Value",
-        pt: "Valor do Tempo"
-      },
-      type: "Text",
-      bindable: true,
-      defaultValue: "09:00"
+  computed: {
+    containerStyle() {
+      return {
+        fontFamily: this.content.fontFamily || 'system-ui, -apple-system, sans-serif',
+        width: this.content.width || '100%',
+        maxWidth: this.content.maxWidth || '400px',
+        margin: this.content.centerAlign ? '0 auto' : '0'
+      }
     },
     
-    // Format settings
-    format24h: {
-      label: {
-        en: "24 Hour Format",
-        pt: "Formato 24 Horas"
-      },
-      type: "OnOff",
-      defaultValue: false
+    labelStyle() {
+      return {
+        color: this.content.labelColor || '#374151',
+        fontSize: this.content.labelSize || '14px',
+        fontWeight: this.content.labelWeight || '500',
+        marginBottom: '8px',
+        display: 'block'
+      }
     },
     
-    showSeconds: {
-      label: {
-        en: "Show Seconds",
-        pt: "Mostrar Segundos"
-      },
-      type: "OnOff",
-      defaultValue: false
+    inputContainerStyle() {
+      return {
+        backgroundColor: this.content.backgroundColor || '#ffffff',
+        border: `${this.content.borderWidth || '2px'} solid ${this.content.borderColor || '#e5e7eb'}`,
+        borderRadius: this.content.borderRadius || '12px',
+        padding: this.content.padding || '16px',
+        boxShadow: this.content.boxShadow || '0 1px 3px rgba(0, 0, 0, 0.1)',
+        transition: 'all 0.2s ease'
+      }
     },
     
-    // Label settings
-    showLabel: {
-      label: {
-        en: "Show Label",
-        pt: "Mostrar Rótulo"
-      },
-      type: "OnOff",
-      defaultValue: true
+    inputStyle() {
+      return {
+        backgroundColor: 'transparent',
+        border: 'none',
+        outline: 'none',
+        fontSize: this.content.inputSize || '24px',
+        fontWeight: this.content.inputWeight || '600',
+        color: this.content.inputColor || '#111827',
+        textAlign: 'center',
+        width: '60px',
+        padding: '8px 4px'
+      }
     },
     
-    label: {
-      label: {
-        en: "Label Text",
-        pt: "Texto do Rótulo"
-      },
-      type: "Text",
-      multiLang: true,
-      defaultValue: "Select Time",
-      hidden: content => !content.showLabel
+    separatorStyle() {
+      return {
+        fontSize: this.content.inputSize || '24px',
+        fontWeight: this.content.inputWeight || '600',
+        color: this.content.separatorColor || '#6b7280',
+        margin: '0 8px',
+        userSelect: 'none'
+      }
     },
     
-    labelColor: {
-      label: {
-        en: "Label Color",
-        pt: "Cor do Rótulo"
-      },
-      type: "Color",
-      defaultValue: "#374151",
-      hidden: content => !content.showLabel
+    timeLabelStyle() {
+      return {
+        fontSize: this.content.labelSize || '12px',
+        color: this.content.timeLabelColor || '#6b7280',
+        fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+      }
     },
     
-    labelSize: {
-      label: {
-        en: "Label Size",
-        pt: "Tamanho do Rótulo"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 8, "max": 24 }]
-      },
-      responsive: true,
-      defaultValue: "14px",
-      hidden: content => !content.showLabel
+    ampmStyle() {
+      return {
+        marginLeft: '16px'
+      }
     },
     
-    labelWeight: {
-      label: {
-        en: "Label Weight",
-        pt: "Peso do Rótulo"
-      },
-      type: "TextSelect",
-      options: {
-        options: [
-          { value: "300", label: "Light" },
-          { value: "400", label: "Normal" },
-          { value: "500", label: "Medium" },
-          { value: "600", label: "Semibold" },
-          { value: "700", label: "Bold" }
-        ]
-      },
-      defaultValue: "500",
-      hidden: content => !content.showLabel
+    ampmButtonStyle() {
+      return {
+        backgroundColor: this.content.ampmBgColor || '#f3f4f6',
+        color: this.content.ampmColor || '#374151',
+        border: 'none',
+        borderRadius: this.content.ampmRadius || '8px',
+        padding: '8px 12px',
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease'
+      }
     },
     
-    // Input styling
-    inputSize: {
-      label: {
-        en: "Input Font Size",
-        pt: "Tamanho da Fonte"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 12, "max": 48 }]
-      },
-      responsive: true,
-      defaultValue: "24px"
+    presetButtonStyle() {
+      return {
+        backgroundColor: this.content.presetBgColor || '#f8fafc',
+        color: this.content.presetColor || '#475569',
+        border: `1px solid ${this.content.presetBorderColor || '#e2e8f0'}`,
+        borderRadius: this.content.presetRadius || '6px',
+        padding: '6px 12px',
+        fontSize: '12px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        margin: '4px 4px 0 0',
+        transition: 'all 0.2s ease'
+      }
     },
     
-    inputWeight: {
-      label: {
-        en: "Input Font Weight",
-        pt: "Peso da Fonte"
-      },
-      type: "TextSelect",
-      options: {
-        options: [
-          { value: "300", label: "Light" },
-          { value: "400", label: "Normal" },
-          { value: "500", label: "Medium" },
-          { value: "600", label: "Semibold" },
-          { value: "700", label: "Bold" }
-        ]
-      },
-      defaultValue: "600"
+    helperTextStyle() {
+      return {
+        color: this.content.helperColor || '#6b7280',
+        fontSize: this.content.helperSize || '12px',
+        marginTop: '8px'
+      }
     },
     
-    inputColor: {
-      label: {
-        en: "Input Text Color",
-        pt: "Cor do Texto"
-      },
-      type: "Color",
-      defaultValue: "#111827"
-    },
-    
-    // Container styling
-    backgroundColor: {
-      label: {
-        en: "Background Color",
-        pt: "Cor de Fundo"
-      },
-      type: "Color",
-      defaultValue: "#ffffff"
-    },
-    
-    borderColor: {
-      label: {
-        en: "Border Color",
-        pt: "Cor da Borda"
-      },
-      type: "Color",
-      defaultValue: "#e5e7eb"
-    },
-    
-    borderHoverColor: {
-      label: {
-        en: "Border Hover Color",
-        pt: "Cor da Borda (Hover)"
-      },
-      type: "Color",
-      defaultValue: "#3b82f6"
-    },
-    
-    borderWidth: {
-      label: {
-        en: "Border Width",
-        pt: "Largura da Borda"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 0, "max": 10 }]
-      },
-      defaultValue: "2px"
-    },
-    
-    borderRadius: {
-      label: {
-        en: "Border Radius",
-        pt: "Raio da Borda"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 0, "max": 32 }]
-      },
-      defaultValue: "12px"
-    },
-    
-    padding: {
-      label: {
-        en: "Padding",
-        pt: "Preenchimento"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 4, "max": 32 }]
-      },
-      defaultValue: "16px"
-    },
-    
-    boxShadow: {
-      label: {
-        en: "Box Shadow",
-        pt: "Sombra da Caixa"
-      },
-      type: "Text",
-      defaultValue: "0 1px 3px rgba(0, 0, 0, 0.1)"
-    },
-    
-    // Layout
-    display: {
-      label: {
-        en: "Display",
-        pt: "Display"
-      },
-      type: "TextSelect",
-      options: {
-        options: [
-          { value: "block", label: "Block" },
-          { value: "flex", label: "Flex" },
-          { value: "inline-block", label: "Inline Block" },
-          { value: "inline", label: "Inline" }
-        ]
-      },
-      defaultValue: "flex"
-    },
-    
-    flexDirection: {
-      label: {
-        en: "Flex Direction",
-        pt: "Direção do Flex"
-      },
-      type: "TextSelect",
-      options: {
-        options: [
-          { value: "column", label: "Column" },
-          { value: "row", label: "Row" }
-        ]
-      },
-      defaultValue: "column",
-      hidden: content => content.display !== "flex"
-    },
-    
-    alignItems: {
-      label: {
-        en: "Align Items",
-        pt: "Alinhar Itens"
-      },
-      type: "TextSelect",
-      options: {
-        options: [
-          { value: "flex-start", label: "Start" },
-          { value: "center", label: "Center" },
-          { value: "flex-end", label: "End" },
-          { value: "stretch", label: "Stretch" }
-        ]
-      },
-      defaultValue: "center",
-      hidden: content => content.display !== "flex"
-    },
-    
-    justifyContent: {
-      label: {
-        en: "Justify Content",
-        pt: "Justificar Conteúdo"
-      },
-      type: "TextSelect",
-      options: {
-        options: [
-          { value: "flex-start", label: "Start" },
-          { value: "center", label: "Center" },
-          { value: "flex-end", label: "End" },
-          { value: "space-between", label: "Space Between" },
-          { value: "space-around", label: "Space Around" }
-        ]
-      },
-      defaultValue: "center",
-      hidden: content => content.display !== "flex"
-    },
-    
-    width: {
-      label: {
-        en: "Width",
-        pt: "Largura"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [
-          { "value": "%", "label": "%", "min": 10, "max": 100 },
-          { "value": "px", "label": "px", "min": 100, "max": 800 }
-        ]
-      },
-      responsive: true,
-      defaultValue: "100%"
-    },
-    
-    maxWidth: {
-      label: {
-        en: "Max Width",
-        pt: "Largura Máxima"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 200, "max": 800 }]
-      },
-      responsive: true,
-      defaultValue: "400px"
-    },
-    
-    centerAlign: {
-      label: {
-        en: "Center Align",
-        pt: "Alinhar ao Centro"
-      },
-      type: "OnOff",
-      defaultValue: false
-    },
-    
-    fontFamily: {
-      label: {
-        en: "Font Family",
-        pt: "Família da Fonte"
-      },
-      type: "FontFamily",
-      defaultValue: "system-ui, -apple-system, sans-serif"
-    },
-    
-    // Time unit labels
-    hoursLabel: {
-      label: {
-        en: "Hours Label",
-        pt: "Rótulo das Horas"
-      },
-      type: "Text",
-      defaultValue: "H"
-    },
-    
-    minutesLabel: {
-      label: {
-        en: "Minutes Label",
-        pt: "Rótulo dos Minutos"
-      },
-      type: "Text",
-      defaultValue: "M"
-    },
-    
-    secondsLabel: {
-      label: {
-        en: "Seconds Label",
-        pt: "Rótulo dos Segundos"
-      },
-      type: "Text",
-      defaultValue: "S",
-      hidden: content => !content.showSeconds
-    },
-    
-    timeLabelColor: {
-      label: {
-        en: "Time Label Color",
-        pt: "Cor dos Rótulos de Tempo"
-      },
-      type: "Color",
-      defaultValue: "#6b7280"
-    },
-    
-    separatorColor: {
-      label: {
-        en: "Separator Color",
-        pt: "Cor do Separador"
-      },
-      type: "Color",
-      defaultValue: "#6b7280"
-    },
-    
-    // AM/PM styling (12h format)
-    ampmBgColor: {
-      label: {
-        en: "AM/PM Background",
-        pt: "Fundo AM/PM"
-      },
-      type: "Color",
-      defaultValue: "#f3f4f6",
-      hidden: content => content.format24h
-    },
-    
-    ampmColor: {
-      label: {
-        en: "AM/PM Text Color",
-        pt: "Cor do Texto AM/PM"
-      },
-      type: "Color",
-      defaultValue: "#374151",
-      hidden: content => content.format24h
-    },
-    
-    ampmRadius: {
-      label: {
-        en: "AM/PM Border Radius",
-        pt: "Raio da Borda AM/PM"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 0, "max": 16 }]
-      },
-      defaultValue: "8px",
-      hidden: content => content.format24h
-    },
-    
-    // Preset buttons
-    showPresets: {
-      label: {
-        en: "Show Preset Buttons",
-        pt: "Mostrar Botões de Preset"
-      },
-      type: "OnOff",
-      defaultValue: true
-    },
-    
-    presets: {
-      label: {
-        en: "Time Presets",
-        pt: "Presets de Tempo"
-      },
-      type: "Info",
-      options: {
-        text: {
-          en: "Add preset times like: [{\"label\":\"Morning\",\"value\":\"09:00\"},{\"label\":\"Lunch\",\"value\":\"12:00\"},{\"label\":\"Evening\",\"value\":\"18:00\"}]",
-          pt: "Adicione tempos de preset como: [{\"label\":\"Manhã\",\"value\":\"09:00\"},{\"label\":\"Almoço\",\"value\":\"12:00\"},{\"label\":\"Noite\",\"value\":\"18:00\"}]"
+    timeValue() {
+      if (this.content.format24h) {
+        return `${String(this.hours).padStart(2, '0')}:${String(this.minutes).padStart(2, '0')}${this.content.showSeconds ? ':' + String(this.seconds).padStart(2, '0') : ''}`
+      } else {
+        return `${String(this.hours).padStart(2, '0')}:${String(this.minutes).padStart(2, '0')}${this.content.showSeconds ? ':' + String(this.seconds).padStart(2, '0') : ''} ${this.ampm}`
+      }
+    }
+  },
+  
+  watch: {
+    initValue: {
+      handler(newValue) {
+        if (newValue && newValue !== this.variableValue) {
+          this.parseTime(newValue);
+          this.setValue(newValue);
         }
       },
-      bindable: true,
-      defaultValue: [
-        { "label": "Morning", "value": "09:00" },
-        { "label": "Noon", "value": "12:00" },
-        { "label": "Evening", "value": "18:00" }
-      ],
-      hidden: content => !content.showPresets
+      immediate: true
     },
     
-    presetBgColor: {
-      label: {
-        en: "Preset Background",
-        pt: "Fundo dos Presets"
+    variableValue: {
+      handler(newValue) {
+        if (newValue && newValue !== this.timeValue) {
+          this.parseTime(newValue);
+        }
       },
-      type: "Color",
-      defaultValue: "#f8fafc",
-      hidden: content => !content.showPresets
+      immediate: true
+    }
+  },
+  
+  methods: {
+    parseTime(timeString) {
+      if (!timeString) return
+      
+      const parts = timeString.split(':')
+      if (parts.length >= 2) {
+        let hours = parseInt(parts[0])
+        const minutes = parseInt(parts[1])
+        let seconds = 0
+        let ampm = 'AM'
+        
+        if (parts.length >= 3) {
+          const secondsPart = parts[2]
+          if (secondsPart.includes(' ')) {
+            const [sec, period] = secondsPart.split(' ')
+            seconds = parseInt(sec)
+            ampm = period
+          } else {
+            seconds = parseInt(secondsPart)
+          }
+        } else if (timeString.includes(' ')) {
+          ampm = timeString.split(' ')[1]
+        }
+        
+        if (!this.content.format24h && hours > 12) {
+          hours = hours - 12
+          ampm = 'PM'
+        }
+        
+        this.hours = hours || 12
+        this.minutes = minutes || 0
+        this.seconds = seconds || 0
+        this.ampm = ampm
+      }
     },
     
-    presetColor: {
-      label: {
-        en: "Preset Text Color",
-        pt: "Cor do Texto dos Presets"
-      },
-      type: "Color",
-      defaultValue: "#475569",
-      hidden: content => !content.showPresets
+    updateTime() {
+      const newValue = this.timeValue;
+      this.setValue(newValue);
+      this.$emit('trigger-event', {
+        name: 'change',
+        event: { value: newValue }
+      });
     },
     
-    presetBorderColor: {
-      label: {
-        en: "Preset Border Color",
-        pt: "Cor da Borda dos Presets"
-      },
-      type: "Color",
-      defaultValue: "#e2e8f0",
-      hidden: content => !content.showPresets
+    validateHours() {
+      const max = this.content.format24h ? 23 : 12
+      const min = this.content.format24h ? 0 : 1
+      
+      if (this.hours > max) this.hours = max
+      if (this.hours < min) this.hours = min
+      
+      this.updateTime()
     },
     
-    presetRadius: {
-      label: {
-        en: "Preset Border Radius",
-        pt: "Raio da Borda dos Presets"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 0, "max": 16 }]
-      },
-      defaultValue: "6px",
-      hidden: content => !content.showPresets
+    validateMinutes() {
+      if (this.minutes > 59) this.minutes = 59
+      if (this.minutes < 0) this.minutes = 0
+      this.updateTime()
     },
     
-    // States
-    disabled: {
-      label: {
-        en: "Disabled",
-        pt: "Desabilitado"
-      },
-      type: "OnOff",
-      bindable: true,
-      defaultValue: false
+    validateSeconds() {
+      if (this.seconds > 59) this.seconds = 59
+      if (this.seconds < 0) this.seconds = 0
+      this.updateTime()
     },
     
-    readonly: {
-      label: {
-        en: "Read Only",
-        pt: "Somente Leitura"
-      },
-      type: "OnOff",
-      bindable: true,
-      defaultValue: false
+    toggleAmPm() {
+      this.ampm = this.ampm === 'AM' ? 'PM' : 'AM'
+      this.updateTime()
     },
     
-    // Helper text
-    helperText: {
-      label: {
-        en: "Helper Text",
-        pt: "Texto de Ajuda"
-      },
-      type: "Text",
-      multiLang: true,
-      defaultValue: ""
-    },
-    
-    helperColor: {
-      label: {
-        en: "Helper Text Color",
-        pt: "Cor do Texto de Ajuda"
-      },
-      type: "Color",
-      defaultValue: "#6b7280",
-      hidden: content => !content.helperText
-    },
-    
-    helperSize: {
-      label: {
-        en: "Helper Text Size",
-        pt: "Tamanho do Texto de Ajuda"
-      },
-      type: "Length",
-      options: {
-        unitChoices: [{ "value": "px", "label": "px", "min": 8, "max": 18 }]
-      },
-      defaultValue: "12px",
-      hidden: content => !content.helperText
+    setPreset(value) {
+      this.parseTime(value)
+      this.updateTime()
+    }
+  },
+  
+  mounted() {
+    // Inicializa com valor padrão
+    if (!this.variableValue) {
+      this.setValue(this.timeValue);
     }
   }
 }
+</script>
+
+<style scoped>
+.ww-time-picker {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.time-input-container {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-input-container:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.time-input-container:focus-within {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.time-input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ww-time-picker {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.time-input {
+  -moz-appearance: textfield;
+  -webkit-appearance: none;
+}
+
+.time-input::-webkit-outer-spin-button,
+.time-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.time-input:focus {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 8px;
+}
+
+.time-label {
+  margin-top: 4px;
+}
+
+.ampm-button:hover:not(:disabled) {
+  background-color: #e5e7eb !important;
+}
+
+.ampm-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.presets-container {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.preset-button:hover:not(:disabled) {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.preset-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.time-input:disabled,
+.ampm-button:disabled,
+.preset-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
