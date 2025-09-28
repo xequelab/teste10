@@ -16,6 +16,7 @@ export default {
   },
   data() {
     return {
+      // Inicializa com content.value para refletir estado anterior
       time: this.content.value || ""
     };
   },
@@ -42,7 +43,7 @@ export default {
   },
   methods: {
     updateValue() {
-      // Atualiza o content.value para o WeWeb capturar
+      // Envia o valor selecionado para o WeWeb
       this.$emit('update:content', { ...this.content, value: this.time });
     }
   }
